@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from gaze_tracking import GazeTracking
+import seaborn as sns;
 
 coords = []
 
@@ -44,7 +45,10 @@ while True:
     cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
     if res >=0.1:
         contador = contador+10
-        coords.append([left_pupil, right_pupil, pd.Timedelta(milliseconds=contador)])
+        if left_pupil != None and right_pupil != None:
+            coords.append([pd.Timedelta(milliseconds=contador), left_pupil[0], left_pupil[1], right_pupil[0], right_pupil[1]])
+        else:
+            print(f'valor nulo detectado -> esq:{left_pupil}\tdir:{right_pupil}')
         temp_ini = ini
         print(f'contador: {contador}')
     print(f'res:{res} temp_ini:{temp_ini} ini:{ini}')
@@ -54,28 +58,17 @@ while True:
         break
     # time.sleep (1)#delay de 1s
 
-# find empty rows
-empty_rows = []
-for i in range(len(coords)):
-    if coords[i][0] is None or coords[i][1] is None:
-        empty_rows.append(i)
-
 # prepare data to be saved
-df = pd.DataFrame(coords, columns=['left_pupil','right_pupil', 'time'])
+df = pd.DataFrame(coords, columns=['time', 'left_pupil_x', 'left_pupil_y', 'right_pupil_x', 'right_pupil_y'])
 # df = pd.DataFrame(time_results, columns= ['tempo'])
-
-# remove empty rows
-df.drop(empty_rows, inplace=True)
 
 colors = np.random.rand(len(df.index))
 
-x_right,y_right = zip(*df['left_pupil'])
-plt.scatter(x_right,y_right,c=colors,alpha=0.5)
+plt.scatter(df['left_pupil_x'],df['left_pupil_y'],c=colors,alpha=0.5)
 plt.title('left_pupil')
 plt.show()
 
-x_left,y_left = zip(*df['right_pupil'])
-plt.scatter(x_left,y_left,c=colors,alpha=0.5)
+plt.scatter(df['right_pupil_x'],df['right_pupil_y'],c=colors,alpha=0.5)
 plt.title('right_pupil')
 plt.show()
 
